@@ -3,9 +3,7 @@
 namespace App\Exceptions;
 
 use Exception;
-// use App\Exceptions\ExceptionTrait;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-// use Illuminate\Http\Response;
 
 class Handler extends ExceptionHandler
 {
@@ -59,7 +57,7 @@ class Handler extends ExceptionHandler
         return parent::render($request, $exception);
     }
 
-    public function findException($req ,$exep){
+    protected function findException($req ,$exep){
         return $this->returnExeption($req ,$exep);
     }
 }

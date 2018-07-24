@@ -6,6 +6,10 @@ use App\models\Product;
 use Illuminate\Http\Request;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\ProductCollection;
+// use App\Http\Traits\SuccessResponseTrait;
+// use App\Http\Traits\ErrorResponseTrait;
+use App\Helpers\ApiResponseTrait;
+
 class ProductController extends Controller
 {
     /**
@@ -13,10 +17,26 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    use ApiResponseTrait;
+    public function __construct()
+    {
+        $this->middleware('auth:token');
+
+        // $this->middleware('log')->only('index');
+
+        // $this->middleware('subscribed')->except('store');
+    }
+    
     public function index()
     {
-        // ProductResource::withoutWrapping();
-         return ProductCollection::collection(Product::paginate());
+        //  return ProductCollection::collection(Product::paginate());
+        $data = ProductCollection::collection(Product::paginate());
+        if($data){
+            return  $this->SuccessResponse($data,$status = 200, $headers = array(), $options = 0 );
+        }else{
+            return  $this->ErrorResponse($data,$status = 401, $headers = array(), $options = 0 );
+        }
+
     }
 
     /**
@@ -48,8 +68,11 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        ProductResource::withoutWrapping();
-        return new ProductResource($product);
+        // ProductResource::withoutWrapping();
+        if(!empty($product)){
+            $data = new ProductResource($product);
+          return  $this->SuccessResponse($data,$status = 200, $headers = array(), $options = 0 );
+        }
     }
 
     /**

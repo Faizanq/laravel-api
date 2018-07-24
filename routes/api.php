@@ -17,6 +17,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::apiresource('/getToken','TokenController');
+
 Route::apiresource('products', 'ProductController');
 Route::prefix('Products')->group(function(){
     // Route::apiresource('{id}', 'ReviewController');

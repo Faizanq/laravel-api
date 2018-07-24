@@ -15,7 +15,6 @@ class ProductResource extends JsonResource
      */
     public function toArray($request)
     {
-        // dd($request);
        // return parent::toArray($request);
         return [
         'name' => $this->name,
@@ -29,9 +28,7 @@ class ProductResource extends JsonResource
             'reviews'=>route('reviews.index',$this->id),
             'self'=>route('products.show',$this->id),
         ],
-        'test'=>[
-            'tets'=>'test',
-        ]
+        'message'=> 'Product Detail',
         ];
     }
 }
