@@ -18,8 +18,11 @@ class TokenController extends Controller
         $token->device_id = empty($request->device_id)?'':$request->device_id;
         $token->device_type = empty($request->device_id)?'':$request->device_id;
         $token->token_type = 'Bearer';
+        // $token->access_token = str_random(32);
         $token->access_token = $this->generateRandomString();
         $token->save();
+
+        // dd($token);
 
         $data = new TokenResource($token);
         return $this->SuccessResponse($data);

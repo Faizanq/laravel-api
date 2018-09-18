@@ -1,17 +1,21 @@
 <?php 
 namespace App\Exceptions;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use App\Helpers\ApiResponseTrait;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
+use Illuminate\Validation\ValidationException;
 use Response;
+use Symfony\Component\Debug\Exception\FatalThrowableError;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 trait ExceptionTrait {
 	
+    use ApiResponseTrait;
+
 	public function returnExeption($req,$exep){
 
-
-		if($exep instanceof ModelNotFoundException)
-        {
+		if($exep instanceof ModelNotFoundException){
             return $this->isModel($req,$exep);
         }
         if ($exep instanceof NotFoundHttpException) {
@@ -19,59 +23,53 @@ trait ExceptionTrait {
         }if($exep instanceof MethodNotAllowedHttpException){
             return $this->isMethod($req,$exep);
         }
+        if($exep instanceof ValidationException){
+            return $this->isValidation($req,$exep);
+        }
+        if($exep instanceof QueryException){
+            return $this->isQuery($req,$exep);
+        }
+        if($exep instanceof FatalThrowableError){
+            return $this->isFatal($req,$exep);
+        }
         
         return parent::render($req,$exep);
 
 	}
 
 	protected function isModel($req,$exep){
-        
-		//  return response()->json([
-        //         'error' => 'Data not found'
-        //     ], 404);
-        $response['error'] = array(); 
-        $response['data'] = []; 
         $model = last(explode('\\',$exep->getModel()));
-        $response['data']['message']= "$model not found"; 
-        $response['success'] = false;
-        return Response::json($response, $status=401, $headers=[], $options=0);
+        return $this->ErrorResponse([], $status = 403, $headers = array(), $options = 0, $message="$model not found" );
         
 	}
 
 	protected function isHttp($req,$exep){
-
-        $response['error']['message']= "API endpoint is not found"; 
-        $response['data'] = [];
-        $response['success'] = false;
-        return Response::json($response, $status=404, $headers=[], $options=0);
-        
-		//  return response()->json([
-        //         'error' => 'API endpoint is not found'
-        //     ], 404);
+        return $this->ErrorResponse([], $status = 404, $headers = array(), $options = 0, $message="API endpoint is not found" );
     }
     
     protected function isMethod($req,$exep){
+        return $this->ErrorResponse([], $status = 404, $headers = array(), $options = 0, $message="This method is not allowed" );
+    }
 
-        $response['error']['message'] = "This method is not allowed"; array(); 
-        $response['data'] = [];
-        $response['success'] = false;
-        return Response::json($response, $status=404, $headers=[], $options=0);
-        
-		//  return response()->json([
-        //         'error' => 'API endpoint is not found'
-        //     ], 404);
+    protected function isValidation($req,$exep){
+        return $this->ErrorResponse([], $status = 404, $headers = array(), $options = 0, $message="Bad Request" );
+    }
+    protected function isQuery($req,$exep){
+        if(config('app.debug')){
+            return $this->ErrorResponse([], $status = 404, $headers = array(), $options = 0, $message=$exep->getMessage());
+        }else
+        return $this->ErrorResponse([], $status = 404, $headers = array(), $options = 0, $message="Something went wrong!");
+    }
+     protected function isFatal($req,$exep){
+            $message = $exep->getMessage().' on line number '.$exep->getLine();
+        return $this->ErrorResponse([], $status = 404, $headers = array(), $options = 0, $message=$message );
     }
     
-    protected function unauthenticated($request, AuthenticationException $exception)
-         {
-            $response['error']['message']= "Unauthenticated"; 
-            $response['data'] = [];
-            $response['success'] = false;
-
+    protected function unauthenticated($request, AuthenticationException $exception){
+        
             return $request->expectsJson()
-                    ? Response::json($response, $status=401, $headers=[], $options=0)
+                    ? $this->ErrorResponse([], $status = 404, $headers = array(), $options = 0, $message="Unauthenticated" )
                     : '';
-
                     // redirect()->guest(route('authentication.index'))
     }
     

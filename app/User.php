@@ -26,7 +26,11 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
-    
+
+    public function setPasswordAttribute($password){
+    $this->attributes['password'] = md5($password);
+    }
+
     public function tokens() {
 		return $this->hasMany(Token::class, 'user_id', 'id');
 	}

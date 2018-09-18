@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class TokenResource extends JsonResource
+class UserCollection extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -14,12 +14,10 @@ class TokenResource extends JsonResource
      */
     public function toArray($request)
     {
-
-        return [
-            'token'=> [
-                'token'=>$this->access_token,
-                'type'=>$this->token_type,
-            ],
+        // return parent::toArray($request);
+          return [
+                'name'=>$this->name,
+                'email'=>$this->email,
         ];
     }
 }

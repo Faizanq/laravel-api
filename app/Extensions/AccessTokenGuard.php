@@ -1,17 +1,22 @@
-<?php namespace App\Extensions;
+<?php 
+namespace App\Extensions;
 use Illuminate\Auth\GuardHelpers;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Http\Request;
+use Auth;
 class AccessTokenGuard implements Guard
 {
 	use GuardHelpers;
 	private $inputKey = '';
 	private $storageKey = '';
 	private $request;
+	private $data;
+	private $muser;
 	public function __construct (UserProvider $provider, Request $request, $configuration) {
 		$this->provider = $provider;
 		$this->request = $request;
+		$this->data = $this->request->request->all();
 		// key to check in request
 		$this->inputKey = isset($configuration['input_key']) ? $configuration['input_key'] : 'access_token';
 		// key to check in database
@@ -25,6 +30,8 @@ class AccessTokenGuard implements Guard
 		// retrieve via token
 		$token = $this->getTokenForRequest();
 		if (!empty($token)) {
+			if(!empty($this->data))
+			$this->provider->updateIdAndDevice($this->storageKey,$token,$this->data['device_id'],$this->data['device_type']);
 			// the token was found, how you want to pass?
 			$user = $this->provider->retrieveByToken($this->storageKey, $token);
 		}
@@ -57,10 +64,20 @@ class AccessTokenGuard implements Guard
 		if (empty($credentials[$this->inputKey])) {
 			return false;
 		}
-		$credentials = [ $this->storageKey => $credentials[$this->inputKey] ];
-		if ($this->provider->retrieveByCredentials($credentials)) {
-			return true;
+		// $credentials = [ $this->storageKey => $credentials[$this->inputKey] ];
+		if ($this->muser = $this->provider->retrieveByCredentials($credentials)) {
+			return $this->muser;
+			// return true;
 		}
 		return false;
+	}
+
+	public function muser(){
+		dd($this->muser);
+		if(empty($this->muser)){
+			return null;
+		}
+		return $this->muser;
+
 	}
 }

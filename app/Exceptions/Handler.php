@@ -50,9 +50,9 @@ class Handler extends ExceptionHandler
     {
         // This will replace our 404 response with
         // a JSON response.
-        if($request->wantsJson()){
+       if($request->wantsJson()){
             return $this->findException($request,$exception);
-        }
+       }
     
         return parent::render($request, $exception);
     }
